@@ -1,0 +1,56 @@
+﻿@model PatiliDostlarVTN.Models.Entities.FeaturedWork
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>FeaturedWork</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Subtitle" class="control-label"></label>
+                <input asp-for="Subtitle" class="form-control" />
+                <span asp-validation-for="Subtitle" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Benefits" class="control-label"></label>
+                <input asp-for="Benefits" class="form-control" />
+                <span asp-validation-for="Benefits" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Footer" class="control-label"></label>
+                <input asp-for="Footer" class="form-control" />
+                <span asp-validation-for="Footer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageUrls" class="control-label"></label>
+                <input asp-for="ImageUrls" class="form-control" />
+                <span asp-validation-for="ImageUrls" class="text-danger"></span>
+            </div>
+            <input type="hidden" asp-for="ID" />
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

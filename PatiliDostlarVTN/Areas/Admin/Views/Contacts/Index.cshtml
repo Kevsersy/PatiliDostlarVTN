@@ -1,0 +1,43 @@
+﻿@model IEnumerable<PatiliDostlarVTN.Models.Entities.Contact>
+
+@{
+    ViewData["Title"] = "Randevu Listesi";
+}
+
+<h1>Randevu Listesi</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Yeni Randevu Oluştur</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Company)</th>
+            <th>@Html.DisplayNameFor(model => model.AppointmentDate)</th>
+            <th>@Html.DisplayNameFor(model => model.AppointmentTime)</th>
+            <th>@Html.DisplayNameFor(model => model.Email)</th>
+            <th>@Html.DisplayNameFor(model => model.Phone)</th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Company)</td>
+                <td>@item.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                <td>@item.AppointmentTime</td>
+                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                <td>@Html.DisplayFor(modelItem => item.Phone)</td>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ID" class="btn btn-warning btn-sm">Düzenle</a>
+                    <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-info btn-sm">Detaylar</a>
+                    <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

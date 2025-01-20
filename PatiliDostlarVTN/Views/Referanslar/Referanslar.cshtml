@@ -1,0 +1,112 @@
+﻿
+
+<section class="container py-5">
+    <div class="row pt-5">
+        <div class="worksingle-content col-lg-8 m-auto text-left justify-content-center">
+            <h2 class="worksingle-heading h3 pb-3 light-300 typo-space-line">Görüşleriniz Bizim İçin Önemli</h2>
+            <p class="worksingle-footer py-3 text-muted light-300">
+                Patili Dostlar Hastanesi olarak, sevimli dostlarınıza en iyi hizmeti sunabilmek adına sürekli olarak kendimizi yeniliyoruz. Sizleri ve evcil dostlarınızı uzman ve sevgi dolu ekibimizle tanışmaya davet ediyoruz.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-8 m-auto text-left justify-content-center">
+        <blockquote class="blockquote py-4 ps-4 border-start border-5">
+            <p class="mb-0">
+                <i>
+                    ”Ben size Allah’dan korkunuz, hayvanları incitmeyiniz, rahatlarını bozmayınız demiyor muyum?”
+                </i>
+                <br />
+                <br />
+            </p>
+            <footer class="blockquote-footer">Hz. Muhammed</footer>
+            <br />
+            <p>
+                <i>
+                    “Hayatımı tamamen hayvanlara yardım etmeye adamamın sebebi; hali hazırda onlara zarar vermeye kendini adamış bu kadar çok insanın olması.”
+                </i>
+                <br />
+            </p>
+            <footer class="blockquote-footer">Buddy Greyhound</footer>
+        </blockquote>
+    </div>
+
+    <!-- Yorumlar Bölümü -->
+    <div class="row justify-content-center">
+        <div class="worksingle-comment-heading col-8 m-auto pb-3">
+            <h4 class="h5">Patili Dostlarımız Ne Diyor?</h4>
+        </div>
+    </div>
+
+    <div class="row pb-4">
+        <div class="worksingle-comment-body col-md-8 m-auto">
+            @foreach (var comment in Model)
+            {
+                <div class="d-flex mb-4">
+                    <div>
+                        <img class="rounded-circle" src="~/assets/img/Playful cat-cuate.svg" style="width: 50px;">
+                    </div>
+                    <div class="comment-body ms-3">
+                        <div class="comment-header d-flex justify-content-between">
+                            <div class="header text-start">
+                                <h5 class="h6">@comment.Name</h5>
+                                <p class="text-muted light-300">@comment.CreatedAt.ToString("g")</p>
+                            </div>
+                        </div>
+                        <div class="footer">
+                            <div class="card-body border light-300">
+                                @comment.Message
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Yorum Bırakma Formu -->
+    <div class="row pb-4">
+        <div class="worksingle-comment-footer col-lg-8 m-auto">
+            <h4 class="h5">Yorum Bırak</h4>
+
+            <!-- Mesajlar -->
+            @if (!string.IsNullOrEmpty(ViewData["SuccessMessage"]?.ToString()))
+            {
+                <div class="alert alert-success" role="alert">
+                    @ViewData["SuccessMessage"]
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ViewData["ErrorMessage"]
+                </div>
+            }
+
+            <form class="col-md-12 m-auto" method="POST" action="/Referanslar/Referans" role="form">
+                <div class="form-group">
+                    <label class="pb-2 pt-sm-0 pt-4 light-300" for="inputmessage">Senin Yorumun</label>
+                    <textarea class="form-control form-control-lg light-300" id="inputmessage" name="inputmessage" placeholder="Senin Yorumun" rows="5" required></textarea>
+                </div>
+
+                <div class="row py-4">
+                    <div class="col-lg-6">
+                        <label class="pb-2 light-300" for="inputname">Adınız</label>
+                        <input type="text" class="form-control form-control-lg light-300" id="inputname" name="inputname" placeholder="Adınız" required>
+                    </div>
+                    <div class="col-lg-6">
+                        <label class="pb-2 pt-sm-0 pt-4 light-300" for="inputemail">Eposta</label>
+                        <input type="email" class="form-control form-control-lg light-300" id="inputemail" name="inputemail" placeholder="Eposta" required>
+                    </div>
+                </div>
+
+                <div class="form-row pt-2">
+                    <div class="col-md-12 col-10 text-end">
+                        <button type="submit" class="btn btn-secondary text-white px-md-4 px-2 py-md-3 py-1 radius-0 light-300">Yorumunu Gönder</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
