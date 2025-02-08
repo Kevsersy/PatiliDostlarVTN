@@ -26,7 +26,7 @@ namespace PatiliDostlarVTN.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Şifre güvenlik kontrolü (En az 6 karakter, 1 büyük harf, 1 küçük harf, 1 rakam)
+              
                 var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$");
 
                 if (!passwordRegex.IsMatch(model.Password))
@@ -35,14 +35,13 @@ namespace PatiliDostlarVTN.Controllers
                     return View(model);
                 }
 
-                // Şifre tekrar kontrolü
+              
                 if (model.Password != model.ConfirmPassword)
                 {
                     ModelState.AddModelError("ConfirmPassword", "Şifreler eşleşmiyor.");
                     return View(model);
                 }
 
-                // Kullanıcı adı veya e-posta zaten kullanılıyor mu?
                 var existingUser = await _userManager.FindByEmailAsync(model.Email);
                 var existingUsername = await _userManager.FindByNameAsync(model.UserName);
 
@@ -69,7 +68,7 @@ namespace PatiliDostlarVTN.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Kullanıcıya varsayılan olarak "User" rolü atanabilir
+                
                     await _userManager.AddToRoleAsync(user, "User");
 
                     return RedirectToAction("Success");
@@ -114,7 +113,7 @@ namespace PatiliDostlarVTN.Controllers
                     return View(model);
                 }
 
-                // Kullanıcının admin olup olmadığını kontrol et
+            
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Contains("Admin"))
                 {

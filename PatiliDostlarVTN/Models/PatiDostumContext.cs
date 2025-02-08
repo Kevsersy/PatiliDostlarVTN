@@ -48,15 +48,12 @@ namespace PatiliDostlarVTN.Models
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-            // IdentityUserLogin için Primary Key tanımlama
             modelBuilder.Entity<IdentityUserLogin<string>>()
                 .HasKey(l => new { l.LoginProvider, l.ProviderKey });
 
-            // IdentityUserRole için Primary Key tanımlama
             modelBuilder.Entity<IdentityUserRole<string>>()
                 .HasKey(r => new { r.UserId, r.RoleId });
 
-            // IdentityUserToken için Primary Key tanımlama
             modelBuilder.Entity<IdentityUserToken<string>>()
                 .HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
         }
