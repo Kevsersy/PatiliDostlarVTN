@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PatiliDostlarVTN.Controllers;
@@ -9,7 +10,7 @@ using PatiliDostlarVTN.Models.Entities;
 
 namespace PatiliDostlarVTN.Models
 {
-    public class PatiDostumContext : DbContext
+    public class PatiDostumContext : IdentityDbContext<AppUser,AppRole,string>
     {
         public PatiDostumContext(DbContextOptions<PatiDostumContext> options)
             : base(options)
@@ -46,6 +47,18 @@ namespace PatiliDostlarVTN.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // IdentityUserLogin için Primary Key tanımlama
+            modelBuilder.Entity<IdentityUserLogin<string>>()
+                .HasKey(l => new { l.LoginProvider, l.ProviderKey });
+
+            // IdentityUserRole için Primary Key tanımlama
+            modelBuilder.Entity<IdentityUserRole<string>>()
+                .HasKey(r => new { r.UserId, r.RoleId });
+
+            // IdentityUserToken için Primary Key tanımlama
+            modelBuilder.Entity<IdentityUserToken<string>>()
+                .HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
         }
         public DbSet<PatiliDostlarVTN.Models.Entities.FeaturedWork> FeaturedWork { get; set; } = default!;
         public DbSet<PatiliDostlarVTN.Models.Entities.RecentWork> RecentWork { get; set; } = default!;

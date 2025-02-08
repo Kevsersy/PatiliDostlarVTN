@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PatiliDostlarVTN.Models;
@@ -8,6 +9,9 @@ using PatiliDostlarVTN.Models.Entities;
 
 namespace PatiliDostlarVTN.Areas.Admin.Controllers
 {
+
+    [Authorize(Roles = "Admin")]
+
     [Area("Admin")]
     public class CommentsController : Controller
     {
