@@ -26,10 +26,8 @@
         Aşağıdaki kanallardan randevunuzu alabilirsiniz.
     </p>
 
-   
     @if (TempData["SuccessMessage"] != null)
     {
-
         <div class="alert alert-success">@TempData["SuccessMessage"]</div>
     }
     @if (TempData["ErrorMessage"] != null)
@@ -37,38 +35,37 @@
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
 
-    
-    <form method="POST" action="/Contact/Submit">
+    <form asp-action="Submit" asp-controller="Contact" method="POST" id="appointmentForm">
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Adınız</label>
-                <input type="text" name="Name" class="form-control" value="@Model?.Name" required />
+                <label asp-for="Name">Adınız</label>
+                <input asp-for="Name" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label>E-posta</label>
-                <input type="email" name="Email" class="form-control" value="@Model?.Email" required />
+                <label asp-for="Email">E-posta</label>
+                <input asp-for="Email" type="email" class="form-control" required />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Telefon</label>
-                <input type="text" name="Phone" class="form-control" value="@Model?.Phone" required />
+                <label asp-for="Phone">Telefon</label>
+                <input asp-for="Phone" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label>Pati Türü</label>
-                <input type="text" name="Company" class="form-control" value="@Model?.Company" />
+                <label asp-for="Company">Pati Türü</label>
+                <input asp-for="Company" class="form-control" />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Randevu Tarihi</label>
-                <input type="date" id="appointmentDate" name="AppointmentDate" class="form-control" required />
+                <label asp-for="AppointmentDate">Randevu Tarihi</label>
+                <input asp-for="AppointmentDate" type="date" class="form-control" id="appointmentDate" required />
             </div>
             <div class="col-lg-6">
                 <label>Randevu Saati</label>
-                <select id="appointmentTime" name="AppointmentTime" class="form-control" required>
+                <select asp-for="AppointmentTime" class="form-control" id="appointmentTime" required>
                     <option value="" disabled selected>Randevu Saati Seçin</option>
                     @for (int hour = 9; hour <= 17; hour++)
                     {
@@ -81,7 +78,7 @@
                 </select>
             </div>
         </div>
-       
+
         <button type="submit" class="btn btn-primary">Randevu Al</button>
     </form>
 </section>
@@ -98,12 +95,36 @@
 
                 for (var i = 0; i < options.length; i++) {
                     if (data.includes(options[i].value)) {
-                        options[i].disabled = true; 
+                        options[i].disabled = true;
                     } else {
-                        options[i].disabled = false; 
+                        options[i].disabled = false;
                     }
                 }
             })
             .catch(error => console.error("Randevu saatleri yüklenirken hata oluştu:", error));
+    });
+
+    document.getElementById("appointmentForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Varsayılan form gönderimini engelle
+
+        var form = this;
+
+        fetch(form.action, {
+            method: form.method,
+            body: new FormData(form)
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url; // Backend'den gelen yönlendirmeyi takip et
+            } else {
+                return response.text();
+            }
+        })
+        .then(html => {
+            if (html) {
+                document.body.innerHTML = html; // Sayfayı güncelle
+            }
+        })
+        .catch(error => console.error("Form gönderilirken hata oluştu:", error));
     });
 </script>

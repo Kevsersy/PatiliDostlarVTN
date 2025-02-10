@@ -1,0 +1,21 @@
+﻿@model List<AppRole>
+
+<a class="btn btn-primary m-3" asp-action="CreatedRole">Create Role</a>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model ?? new())
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>

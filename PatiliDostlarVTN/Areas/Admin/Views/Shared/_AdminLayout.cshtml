@@ -82,19 +82,20 @@
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column">
         <h4 class="text-center py-3 border-bottom">PATİLİ DOSTLAR A.Ş.</h4>
-        <a asp-area="admin" asp-controller="AboutUs" class="active">HAKKIMIZDA</a>
-        <a asp-area="admin" asp-controller="Progresses">HAKKIMIZDA GELİŞİM ÖLÇÜTLERİ</a>
-        <a asp-area="admin" asp-controller="TeamMembers">EKİP ÜYELERİ</a>
-        <a asp-area="admin" asp-controller="Works">HİZMETLERİMİZ</a>
-        <a asp-area="admin" asp-controller="Services">HİZMETLERİMİZ SERVİS</a>
+        <a asp-area="admin" asp-controller="AboutUs" asp-action="Index" class="active">HAKKIMIZDA</a>
+        <a asp-area="admin" asp-controller="Progresses" asp-action="Index">GELİŞİM ÖLÇÜTLERİ</a>
+        <a asp-area="admin" asp-controller="TeamMembers" asp-action="Index">EKİP ÜYELERİ</a>
+        <a asp-area="admin" asp-controller="Works" asp-action="Index">HİZMETLERİMİZ</a>
+        <a asp-area="admin" asp-controller="Services" asp-action="Index">SERVİS HİZMETLERİ</a>
         <a asp-area="admin" asp-controller="Contacts" asp-action="Index">İLETİŞİM</a>
-        <a asp-area="admin" asp-controller="ContactInfoes">İLETİŞİM İNFO</a>
-        <a asp-area="admin" asp-controller="Logins">ADMİN LOGİN</a>
-        <a asp-area="admin" asp-controller="Comments">YORUMLAR</a>
-        <a asp-area="" asp-controller="Home" asp-action="Index">ÇIKIŞ</a>
-
-
+        <a asp-area="admin" asp-controller="ContactInfoes" asp-action="Index">İLETİŞİM BİLGİLERİ</a>
+        <a asp-area="admin" asp-controller="Comments" asp-action="Index">YORUMLAR</a>
+        <a asp-area="admin" asp-controller="Home" asp-action="Users">KULLANICILAR</a>
+        <a asp-area="admin" asp-controller="Home" asp-action="CreatedRole">ROLLER</a>
+        <a asp-area="admin" asp-controller="Home" asp-action="Roles">ROL LİSTE</a>
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-danger">ÇIKIŞ</a>
     </div>
+
 
     <!-- Main Content -->
     <div class="content">
@@ -105,7 +106,6 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
             </div>
         </nav>
 
@@ -115,5 +115,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    @RenderSection("Scripts", required: false) <!-- Buraya eklendi, hata çözüldü -->
+
 </body>
 </html>
