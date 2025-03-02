@@ -1,4 +1,4 @@
 ﻿namespace PatiliDostlarVTN.ViewModels;
 
-public record CreateRoleVM (string Name);
+public record CreateRoleVM(string Name);
 

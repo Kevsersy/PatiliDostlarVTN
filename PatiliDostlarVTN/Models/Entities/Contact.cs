@@ -1,11 +1,14 @@
-﻿namespace PatiliDostlarVTN.Models.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace PatiliDostlarVTN.Models.Entities;
+
+public class Contact : ContactableEntity
 {
-    public class Contact : ContactableEntity
-    {
-
-        public string? Company { get; set; }
-
-        public DateTime AppointmentDate { get; set; } 
-        public string? AppointmentTime { get; set; }
-    }
+    [JsonPropertyName("Company")]
+    public string? Company { get; set; }
+    [JsonPropertyName("AppointmentDate")]
+    public DateTime AppointmentDate { get; set; }
+    [JsonPropertyName("AppointmentTime")]
+    public string? AppointmentTime { get; set; }
+    
 }

@@ -1,50 +1,58 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PatiliDostlarVTN.Models;
 using PatiliDostlarVTN.Models.Entities;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace PatiliDostlarVTN.Areas.Admin.Controllers
 {
-
     [Authorize(Roles = "Admin")]
-
     [Area("Admin")]
     public class CommentsController : Controller
     {
-        private readonly PatiDostumContext _context;
+        private readonly HttpClient _client;
 
-        public CommentsController(PatiDostumContext context)
+        public CommentsController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _client = clientFactory.CreateClient("PatiliDost");
         }
 
-     
+        
         public async Task<IActionResult> Index()
         {
-            var comments = await _context.Comments
-                .OrderByDescending(c => c.CreatedAt) 
-                .ToListAsync();
+            List<Comment> comments = new List<Comment>();
+
+            try
+            {
+                var response = await _client.GetAsync("/api/Referanslar");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    comments = JsonSerializer.Deserialize<List<Comment>>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "API'den yorumlar alınırken bir hata oluştu.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Bağlantı sırasında bir hata oluştu: {ex.Message}";
+            }
+
             return View(comments);
         }
 
        
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(m => m.ID == id);
+            var comment = await GetCommentFromApi(id);
             if (comment == null)
-            {
                 return NotFound();
-            }
 
             return View(comment);
         }
@@ -56,105 +64,106 @@ namespace PatiliDostlarVTN.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AvatarUrl,Message,Name")] Comment comment)
+        public async Task<IActionResult> Create(Comment comment)
         {
-            if (ModelState.IsValid)
-            {
-                // CreatedAt alanını otomatik olarak ayarla
-                comment.CreatedAt = DateTime.Now;
+            if (!ModelState.IsValid)
+                return View(comment);
 
-                _context.Add(comment);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+            try
+            {
+                var jsonContent = new StringContent(JsonSerializer.Serialize(comment), Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync("/api/Referanslar", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
             }
+            catch
+            {
+                TempData["ErrorMessage"] = "Yorum eklenirken hata oluştu.";
+            }
+
             return View(comment);
         }
 
-      
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var comment = await _context.Comments.FindAsync(id);
+            var comment = await GetCommentFromApi(id);
             if (comment == null)
-            {
                 return NotFound();
-            }
+
             return View(comment);
         }
 
-   
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AvatarUrl,Message,Name,ID")] Comment comment)
+        public async Task<IActionResult> Edit(int id, Comment comment)
         {
-            if (id != comment.ID)
+            if (id != comment.ID || !ModelState.IsValid)
+                return BadRequest();
+
+            try
             {
-                return NotFound();
+                var jsonContent = new StringContent(JsonSerializer.Serialize(comment), Encoding.UTF8, "application/json");
+                var response = await _client.PutAsync($"/api/Referanslar/{id}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Yorum güncellenirken hata oluştu.";
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(comment);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CommentExists(comment.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
             return View(comment);
         }
 
-      
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(m => m.ID == id);
+            var comment = await GetCommentFromApi(id);
             if (comment == null)
-            {
                 return NotFound();
-            }
 
             return View(comment);
         }
 
-      
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var comment = await _context.Comments.FindAsync(id);
-            if (comment != null)
+            try
             {
-                _context.Comments.Remove(comment);
+                var response = await _client.DeleteAsync($"/api/Referanslar/{id}");
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Yorum silinirken hata oluştu.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CommentExists(int id)
+        
+        private async Task<Comment> GetCommentFromApi(int id)
         {
-            return _context.Comments.Any(e => e.ID == id);
+            try
+            {
+                var response = await _client.GetAsync($"/api/Referanslar/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Comment>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Yorum verisi alınırken hata oluştu.";
+            }
+
+            return null;
         }
     }
 }

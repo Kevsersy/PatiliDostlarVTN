@@ -1,5 +1,4 @@
-﻿@model PatiliDostlarVTN.Models.Entities.Contact
-
+﻿@model PatiliDostlarVTN.ViewModels.ContactVM
 <section class="bg-light">
     <div class="container py-4">
         <div class="row align-items-center justify-content-between">
@@ -26,6 +25,7 @@
         Aşağıdaki kanallardan randevunuzu alabilirsiniz.
     </p>
 
+
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success">@TempData["SuccessMessage"]</div>
@@ -35,38 +35,37 @@
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
 
-    <form asp-action="Submit" asp-controller="Contact" method="POST" id="appointmentForm">
+    <form asp-action="Submit" asp-controller="Contact" method="POST">
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label asp-for="Name">Adınız</label>
-                <input asp-for="Name" class="form-control" required />
+                <label asp-for="NewContact.Name">Adınız</label>
+                <input asp-for="NewContact.Name" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label asp-for="Email">E-posta</label>
-                <input asp-for="Email" type="email" class="form-control" required />
+                <label asp-for="NewContact.Email">E-posta</label>
+                <input asp-for="NewContact.Email" type="email" class="form-control" required />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label asp-for="Phone">Telefon</label>
-                <input asp-for="Phone" class="form-control" required />
+                <label asp-for="NewContact.Phone">Telefon</label>
+                <input asp-for="NewContact.Phone" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label asp-for="Company">Pati Türü</label>
-                <input asp-for="Company" class="form-control" />
+                <label asp-for="NewContact.Company">Pati Türü</label>
+                <input asp-for="NewContact.Company" class="form-control" />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label asp-for="AppointmentDate">Randevu Tarihi</label>
-                <input asp-for="AppointmentDate" type="date" class="form-control" id="appointmentDate" required />
+                <label asp-for="NewContact.AppointmentDate">Randevu Tarihi</label>
+                <input asp-for="NewContact.AppointmentDate" type="date" class="form-control" required />
             </div>
             <div class="col-lg-6">
                 <label>Randevu Saati</label>
-                <select asp-for="AppointmentTime" class="form-control" id="appointmentTime" required>
-                    <option value="" disabled selected>Randevu Saati Seçin</option>
+                <select asp-for="NewContact.AppointmentTime" class="form-control" required>
                     @for (int hour = 9; hour <= 17; hour++)
                     {
                         @for (int minute = 0; minute < 60; minute += 30)
@@ -82,49 +81,3 @@
         <button type="submit" class="btn btn-primary">Randevu Al</button>
     </form>
 </section>
-
-<script>
-    document.getElementById("appointmentDate").addEventListener("change", function () {
-        var selectedDate = this.value;
-
-        fetch(`/Contact/GetUnavailableTimes?date=${selectedDate}`)
-            .then(response => response.json())
-            .then(data => {
-                var timeSelect = document.getElementById("appointmentTime");
-                var options = timeSelect.options;
-
-                for (var i = 0; i < options.length; i++) {
-                    if (data.includes(options[i].value)) {
-                        options[i].disabled = true;
-                    } else {
-                        options[i].disabled = false;
-                    }
-                }
-            })
-            .catch(error => console.error("Randevu saatleri yüklenirken hata oluştu:", error));
-    });
-
-    document.getElementById("appointmentForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // Varsayılan form gönderimini engelle
-
-        var form = this;
-
-        fetch(form.action, {
-            method: form.method,
-            body: new FormData(form)
-        })
-        .then(response => {
-            if (response.redirected) {
-                window.location.href = response.url; // Backend'den gelen yönlendirmeyi takip et
-            } else {
-                return response.text();
-            }
-        })
-        .then(html => {
-            if (html) {
-                document.body.innerHTML = html; // Sayfayı güncelle
-            }
-        })
-        .catch(error => console.error("Form gönderilirken hata oluştu:", error));
-    });
-</script>

@@ -1,30 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PatiliDostlarVTN.Models;
 using PatiliDostlarVTN.Models.Entities;
-using PatiliDostlarVTN.Service;
+using PatiliDostlarVTN.ViewModels;
 using System;
-using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 public class ContactController : Controller
 {
-    private readonly PatiDostumContext _context;
-    private readonly IContactService _contactService;
+    private readonly HttpClient _client;
 
-    public ContactController(PatiDostumContext context, IContactService contactService)
+    public ContactController(IHttpClientFactory clientFactory)
     {
-        _context = context;
-        _contactService = contactService;
+        _client = clientFactory.CreateClient("PatiliDost");
     }
 
+    
     [HttpGet]
     public IActionResult Contact()
     {
-        return View();
+        var viewModel = new ContactVM
+        {
+            NewContact = new Contact() 
+        };
+
+        return View(viewModel);
     }
 
+   
     [HttpPost]
-    public async Task<IActionResult> Submit(Contact model)
+    public async Task<IActionResult> Submit(ContactVM model)
     {
         if (!ModelState.IsValid)
         {
@@ -33,41 +38,18 @@ public class ContactController : Controller
 
         try
         {
-            DateTime today = DateTime.Today;
-            DateTime selectedDate = model.AppointmentDate;
-            int currentYear = today.Year;
+            var jsonContent = new StringContent(JsonSerializer.Serialize(model.NewContact), System.Text.Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/Contacts", jsonContent);
 
-            
-            if (selectedDate < today)
+            if (!response.IsSuccessStatusCode)
             {
-                TempData["ErrorMessage"] = "Geçmiş tarihe randevu alınamaz.";
+                TempData["ErrorMessage"] = "Randevu oluşturulamadı. Aynı tarih ve saate randevu var mı kontrol edin.";
                 return View("Contact", model);
             }
 
-         
-            if (selectedDate.Year != currentYear && !(today.Month == 12 && selectedDate.Year == currentYear + 1))
-            {
-                TempData["ErrorMessage"] = "Randevu sadece mevcut yıl içinde alınabilir. Aralık ayında ise bir sonraki yıl da mümkündür.";
-                return View("Contact", model);
-            }
-
-        
-            bool isTimeSlotTaken = _context.Contacts
-                .Any(r => r.AppointmentDate == model.AppointmentDate && r.AppointmentTime == model.AppointmentTime);
-
-            if (isTimeSlotTaken)
-            {
-                TempData["ErrorMessage"] = "Bu tarih ve saat için zaten bir randevu mevcut. Lütfen başka bir zaman seçin.";
-                return View("Contact", model);
-            }
-
-            _context.Add(model);
-            await _context.SaveChangesAsync();
-
-            
             TempData["SuccessMessage"] = "Randevunuz başarıyla oluşturuldu!";
 
-          
+           
             return RedirectToAction("Randevu");
         }
         catch (Exception ex)
@@ -78,15 +60,10 @@ public class ContactController : Controller
         }
     }
 
+    
+    [HttpGet]
     public IActionResult Randevu()
     {
         return View();
-    }
-
-    [HttpGet]
-    public IActionResult GetUnavailableTimes(DateTime date)
-    {
-        var unavailableTimes = _contactService.GetUnavailableTimes(date);
-        return Json(unavailableTimes);
     }
 }

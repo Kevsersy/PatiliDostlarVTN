@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using PatiliDostlarVTN.Models.Entities;
 using System.Threading.Tasks;
 using System.Linq;
-using PatiliDostlarVTN.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using PatiliDostlarVTN.ViewModels;
 
 
 [Authorize(Roles = "Admin")]

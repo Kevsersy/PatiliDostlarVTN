@@ -12,20 +12,28 @@ using PatiliDostlarVTN.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// FluentValidation Ayarları
+builder.Services.AddHttpClient("PatiliDost", c =>
+{
+    c.BaseAddress = new Uri("https://localhost:7063"); 
+    c.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddScoped< ContactService>();
+
+
+
 builder.Services.AddFluentValidationAutoValidation(config =>
 {
     config.DisableDataAnnotationsValidation = false;
 });
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// Veritabanı Bağlantısı
+
 var dbConnectionString = builder.Configuration.GetConnectionString("DbConn");
 builder.Services.AddDbContext<PatiDostumContext>(options =>
     options.UseSqlServer(dbConnectionString)
 );
 
-//  Identity Konfigürasyonu (Kullanıcı Yönetimi)
+
 builder.Services.AddIdentity<AppUser, AppRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -41,7 +49,7 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     .AddPasswordValidator<CustomPassword>()
     .AddEntityFrameworkStores<PatiDostumContext>();
 
-//  Kimlik doğrulama çerez ayarları
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = new PathString("/User/Login");
@@ -57,14 +65,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
 });
 
-// Repository ve Servis Kayıtları
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IContactService, ContactService>();
+
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<ICookieService, CookieService>();
 
-// Session ve Cookie Ayarları
+
 builder.Services.AddSession();
 builder.Services.AddAuthentication();
 builder.Services.AddControllersWithViews()
@@ -78,14 +86,14 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.Secure = CookieSecurePolicy.Always;
 });
 
-// Swagger ve API Ayarları
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Geliştirme Ortamında Swagger UI
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -99,10 +107,10 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Yönlendirme
+
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}" // Area yönlendirme
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}" 
 );
 
 app.MapDefaultControllerRoute();

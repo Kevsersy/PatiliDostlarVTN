@@ -1,33 +1,53 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PatiliDostlarVTN.Models.Entities;
-using PatiliDostlarVTN.Service;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace PatiliDostlarVTN.Controllers
 {
     public class ReferanslarController : Controller
     {
-        private readonly ICommentService _commentService;
+        private readonly HttpClient _client;
 
-        public ReferanslarController(ICommentService commentService)
+        public ReferanslarController(IHttpClientFactory clientFactory)
         {
-            _commentService = commentService;
+            _client = clientFactory.CreateClient("PatiliDost");
         }
 
+        
         [HttpGet]
-        public IActionResult Referanslar()
+        public async Task<IActionResult> Referanslar()
         {
-     
-            var comments = _commentService.GetAllComments();
+            List<Comment> comments = new List<Comment>();
 
-            ViewBag.SuccessMessage = TempData["SuccessMessage"];
-            ViewBag.ErrorMessage = TempData["ErrorMessage"];
+            try
+            {
+                var response = await _client.GetAsync("/api/Referanslar");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    comments = JsonSerializer.Deserialize<List<Comment>>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "API'den yorumlar alınırken bir hata oluştu.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Bağlantı sırasında bir hata oluştu: {ex.Message}";
+            }
 
             return View(comments);
         }
 
+      
         [HttpPost]
-        public IActionResult Referans(string inputname, string inputemail, string inputmessage)
+        public async Task<IActionResult> Referans(string inputname, string inputemail, string inputmessage)
         {
             if (string.IsNullOrWhiteSpace(inputname) || string.IsNullOrWhiteSpace(inputmessage))
             {
@@ -37,16 +57,24 @@ namespace PatiliDostlarVTN.Controllers
 
             try
             {
-                var newComment = new Comment
+                var newComment = new
                 {
                     Name = inputname,
-                    Message = inputmessage,
-                    CreatedAt = DateTime.Now
+                    Message = inputmessage
                 };
 
-                _commentService.AddComment(newComment);
+                var jsonContent = new StringContent(JsonSerializer.Serialize(newComment), Encoding.UTF8, "application/json");
 
-                TempData["SuccessMessage"] = "Yorumunuz başarıyla eklendi!";
+                var response = await _client.PostAsync("/api/Referanslar", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = "Yorumunuz başarıyla eklendi!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Yorum eklenirken hata oluştu.";
+                }
             }
             catch (Exception ex)
             {

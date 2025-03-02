@@ -17,7 +17,7 @@ namespace PatiliDostlarVTN.Models
         {
         }
 
-        // Tablo tanımları
+     
         public DbSet<AboutUs> AboutUs { get; set; }
         public DbSet<Progress> Progresses { get; set; }
         public DbSet<TeamMember> TeamMembers { get; set; }

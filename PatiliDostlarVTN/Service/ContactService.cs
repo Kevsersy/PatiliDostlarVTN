@@ -1,59 +1,48 @@
-﻿using PatiliDostlarVTN.Models.Entities;
-using PatiliDostlarVTN.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using PatiliDostlarVTN.Models.Entities;
 
 namespace PatiliDostlarVTN.Service
 {
     public class ContactService : IContactService
     {
-        private readonly PatiDostumContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ContactService(PatiDostumContext context)
+        public ContactService(IHttpClientFactory httpClientFactory)
         {
-            _context = context;
-        }
-
-        public bool ValidateContact(Contact contact, out string errorMessage)
-        {
-            errorMessage = string.Empty;
-
-            if (contact.AppointmentDate.Date < DateTime.Now.Date)
-            {
-                errorMessage = "Geçmiş bir tarih seçemezsiniz. Lütfen geçerli bir tarih seçin.";
-                return false;
-            }
-
-            if (contact.AppointmentDate.Date > DateTime.Now.Date.AddYears(1))
-            {
-                errorMessage = "Randevu tarihi bir yıl içinde olmalıdır. Lütfen geçerli bir tarih seçin.";
-                return false;
-            }
-
-           
-
-            if (_context.Contacts.Any(c =>
-                c.AppointmentDate.Date == contact.AppointmentDate.Date &&
-                c.AppointmentTime == contact.AppointmentTime))
-            {
-                errorMessage = "Seçilen tarih ve saatte zaten bir randevu bulunmaktadır. Lütfen başka bir saat seçin.";
-                return false;
-            }
-
-            return true;
+            _httpClientFactory = httpClientFactory;
         }
 
         public void AddContact(Contact contact)
         {
-            _context.Contacts.Add(contact);
-            _context.SaveChanges();
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<Contact>> GetContactsAsync()
+        {
+            var client = _httpClientFactory.CreateClient("PatiliDost");
+            var response = await client.GetAsync("/Contacts");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new List<Contact>(); 
+            }
+
+            var jsonData = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<Contact>>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         public List<string> GetUnavailableTimes(DateTime date)
         {
-            return _context.Contacts
-                .Where(c => c.AppointmentDate.Date == date.Date)
-                .Select(c => c.AppointmentTime)
-                .ToList();
+            throw new NotImplementedException();
+        }
+
+        public bool ValidateContact(Contact contact, out string errorMessage)
+        {
+            throw new NotImplementedException();
         }
     }
-
 }
