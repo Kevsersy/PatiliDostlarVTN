@@ -1,5 +1,4 @@
-﻿@model PatiliDostlarVTN.Models.Entities.Contact
-
+﻿@model PatiliDostlarVTN.ViewModels.ContactVM
 <section class="bg-light">
     <div class="container py-4">
         <div class="row align-items-center justify-content-between">
@@ -26,10 +25,9 @@
         Aşağıdaki kanallardan randevunuzu alabilirsiniz.
     </p>
 
-   
+
     @if (TempData["SuccessMessage"] != null)
     {
-
         <div class="alert alert-success">@TempData["SuccessMessage"]</div>
     }
     @if (TempData["ErrorMessage"] != null)
@@ -37,39 +35,37 @@
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
 
-    
-    <form method="POST" action="/Contact/Submit">
+    <form asp-action="Submit" asp-controller="Contact" method="POST">
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Adınız</label>
-                <input type="text" name="Name" class="form-control" value="@Model?.Name" required />
+                <label asp-for="NewContact.Name">Adınız</label>
+                <input asp-for="NewContact.Name" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label>E-posta</label>
-                <input type="email" name="Email" class="form-control" value="@Model?.Email" required />
+                <label asp-for="NewContact.Email">E-posta</label>
+                <input asp-for="NewContact.Email" type="email" class="form-control" required />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Telefon</label>
-                <input type="text" name="Phone" class="form-control" value="@Model?.Phone" required />
+                <label asp-for="NewContact.Phone">Telefon</label>
+                <input asp-for="NewContact.Phone" class="form-control" required />
             </div>
             <div class="col-lg-6">
-                <label>Pati Türü</label>
-                <input type="text" name="Company" class="form-control" value="@Model?.Company" />
+                <label asp-for="NewContact.Company">Pati Türü</label>
+                <input asp-for="NewContact.Company" class="form-control" />
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6">
-                <label>Randevu Tarihi</label>
-                <input type="date" id="appointmentDate" name="AppointmentDate" class="form-control" required />
+                <label asp-for="NewContact.AppointmentDate">Randevu Tarihi</label>
+                <input asp-for="NewContact.AppointmentDate" type="date" class="form-control" required />
             </div>
             <div class="col-lg-6">
                 <label>Randevu Saati</label>
-                <select id="appointmentTime" name="AppointmentTime" class="form-control" required>
-                    <option value="" disabled selected>Randevu Saati Seçin</option>
+                <select asp-for="NewContact.AppointmentTime" class="form-control" required>
                     @for (int hour = 9; hour <= 17; hour++)
                     {
                         @for (int minute = 0; minute < 60; minute += 30)
@@ -81,29 +77,7 @@
                 </select>
             </div>
         </div>
-       
+
         <button type="submit" class="btn btn-primary">Randevu Al</button>
     </form>
 </section>
-
-<script>
-    document.getElementById("appointmentDate").addEventListener("change", function () {
-        var selectedDate = this.value;
-
-        fetch(`/Contact/GetUnavailableTimes?date=${selectedDate}`)
-            .then(response => response.json())
-            .then(data => {
-                var timeSelect = document.getElementById("appointmentTime");
-                var options = timeSelect.options;
-
-                for (var i = 0; i < options.length; i++) {
-                    if (data.includes(options[i].value)) {
-                        options[i].disabled = true; 
-                    } else {
-                        options[i].disabled = false; 
-                    }
-                }
-            })
-            .catch(error => console.error("Randevu saatleri yüklenirken hata oluştu:", error));
-    });
-</script>

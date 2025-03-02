@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<AppUser> _sm
+@inject UserManager<AppUser> _um
+
+<div class="d-flex align-items-center">
+    @if (_sm.IsSignedIn(User))
+    {
+        <a asp-area="Management" asp-controller="Home"
+           class="ms-3 btn btn-primary text-white rounded-pill px-3 text-decoration-none">
+            Welcome, @User.Identity?.Name
+        </a>
+
+        <a href="/User/Logout"
+           class="ms-3 btn btn-danger text-white rounded-pill px-3 text-decoration-none">
+            Logout
+        </a>
+    }
+    else
+    {
+        <a asp-controller="User" asp-action="Register"
+           class="ms-3 btn btn-primary text-white rounded-pill px-3 text-decoration-none">
+            Üye Ol
+        </a>
+
+        <a asp-controller="User" asp-action="Giris"
+           class="ms-3 btn btn-warning text-white rounded-pill px-3 text-decoration-none">
+            Admin Giriş
+        </a>
+    }
+</div>

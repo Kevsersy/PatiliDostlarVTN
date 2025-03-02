@@ -1,153 +1,165 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using PatiliDostlarVTN.Models;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using PatiliDostlarVTN.Models.Entities;
 
 namespace PatiliDostlarVTN.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Area("Admin")]
     public class ContactsController : Controller
     {
-        private readonly PatiDostumContext _context;
+        private readonly HttpClient _client;
 
-        public ContactsController(PatiDostumContext context)
+        public ContactsController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _client = clientFactory.CreateClient("PatiliDost");
         }
 
-      
+     
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Contacts.ToListAsync());
+            List<Contact> contacts = new List<Contact>();
+
+            try
+            {
+                var response = await _client.GetAsync("/api/Contacts");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    contacts = JsonSerializer.Deserialize<List<Contact>>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "API'den veriler alınırken hata oluştu.";
+            }
+
+            return View(contacts);
         }
 
-        public async Task<IActionResult> Details(int? id)
+     
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var contact = await _context.Contacts
-                .FirstOrDefaultAsync(m => m.ID == id);
+            var contact = await GetContactFromApi(id);
             if (contact == null)
-            {
                 return NotFound();
-            }
 
             return View(contact);
         }
 
-       
+    
         public IActionResult Create()
         {
             return View();
         }
 
-       
+ 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Company,AppointmentDate,AppointmentTime,Email,Phone,Name,ID")] Contact contact)
+        public async Task<IActionResult> Create(Contact contact)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(contact);
+
+            try
             {
-                _context.Add(contact);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var jsonContent = new StringContent(JsonSerializer.Serialize(contact), Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync("/api/Contacts", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
             }
+            catch
+            {
+                TempData["ErrorMessage"] = "Randevu oluşturulurken hata oluştu.";
+            }
+
             return View(contact);
         }
 
-      
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var contact = await _context.Contacts.FindAsync(id);
+            var contact = await GetContactFromApi(id);
             if (contact == null)
-            {
                 return NotFound();
-            }
+
             return View(contact);
         }
 
-       
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Company,AppointmentDate,AppointmentTime,Email,Phone,Name,ID")] Contact contact)
+        public async Task<IActionResult> Edit(int id, Contact contact)
         {
-            if (id != contact.ID)
+            if (id != contact.ID || !ModelState.IsValid)
+                return BadRequest();
+
+            try
             {
-                return NotFound();
+                var jsonContent = new StringContent(JsonSerializer.Serialize(contact), Encoding.UTF8, "application/json");
+                var response = await _client.PutAsync($"/api/Contacts/{id}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Randevu güncellenirken hata oluştu.";
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(contact);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ContactExists(contact.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
             return View(contact);
         }
 
         
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var contact = await _context.Contacts
-                .FirstOrDefaultAsync(m => m.ID == id);
+            var contact = await GetContactFromApi(id);
             if (contact == null)
-            {
                 return NotFound();
-            }
 
             return View(contact);
         }
 
-      
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var contact = await _context.Contacts.FindAsync(id);
-            if (contact != null)
+            try
             {
-                _context.Contacts.Remove(contact);
+                var response = await _client.DeleteAsync($"/api/Contacts/{id}");
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Randevu silinirken hata oluştu.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ContactExists(int id)
+        private async Task<Contact> GetContactFromApi(int id)
         {
-            return _context.Contacts.Any(e => e.ID == id);
+            try
+            {
+                var response = await _client.GetAsync($"/api/Contacts/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Contact>(jsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Randevu verisi alınırken hata oluştu.";
+            }
+
+            return null;
         }
     }
 }

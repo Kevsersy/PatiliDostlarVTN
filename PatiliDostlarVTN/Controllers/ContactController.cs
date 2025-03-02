@@ -1,41 +1,69 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PatiliDostlarVTN.Models.Entities;
-using PatiliDostlarVTN.Service;
+using PatiliDostlarVTN.ViewModels;
+using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 public class ContactController : Controller
 {
-    private readonly IContactService _contactService;
+    private readonly HttpClient _client;
 
-    public ContactController(IContactService contactService)
+    public ContactController(IHttpClientFactory clientFactory)
     {
-        _contactService = contactService;
+        _client = clientFactory.CreateClient("PatiliDost");
     }
 
+    
     [HttpGet]
     public IActionResult Contact()
     {
-        return View();
+        var viewModel = new ContactVM
+        {
+            NewContact = new Contact() 
+        };
+
+        return View(viewModel);
     }
 
+   
     [HttpPost]
-    public IActionResult Submit(Contact contact)
+    public async Task<IActionResult> Submit(ContactVM model)
     {
-        if (!_contactService.ValidateContact(contact, out var errorMessage))
+        if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = errorMessage;
-            return View("Contact", contact);
+            return View("Contact", model);
         }
 
-        _contactService.AddContact(contact);
+        try
+        {
+            var jsonContent = new StringContent(JsonSerializer.Serialize(model.NewContact), System.Text.Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/Contacts", jsonContent);
 
-        TempData["SuccessMessage"] = "Randevunuz başarılı bir şekilde oluşturuldu!";
-        return RedirectToAction("Contact");
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["ErrorMessage"] = "Randevu oluşturulamadı. Aynı tarih ve saate randevu var mı kontrol edin.";
+                return View("Contact", model);
+            }
+
+            TempData["SuccessMessage"] = "Randevunuz başarıyla oluşturuldu!";
+
+           
+            return RedirectToAction("Randevu");
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Randevu oluşturulurken bir hata oluştu.";
+            Console.WriteLine("Hata: " + ex.Message);
+            return View("Contact", model);
+        }
     }
 
+    
     [HttpGet]
-    public IActionResult GetUnavailableTimes(DateTime date)
+    public IActionResult Randevu()
     {
-        var unavailableTimes = _contactService.GetUnavailableTimes(date);
-        return Json(unavailableTimes);
+        return View();
     }
 }
